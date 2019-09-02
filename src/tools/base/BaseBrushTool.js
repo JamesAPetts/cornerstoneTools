@@ -146,7 +146,6 @@ class BaseBrushTool extends BaseTool {
     const {
       labelmap3D,
       currentImageIdIndex,
-      activeLabelmapIndex,
       shouldErase,
     } = this.paintEventData;
 
@@ -179,6 +178,9 @@ class BaseBrushTool extends BaseTool {
     ) {
       delete labelmap3D.labelmaps2D[currentImageIdIndex];
     }
+
+    // Push state.
+    setters.pushState(this.element);
   }
 
   // ===================================================================

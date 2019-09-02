@@ -22,7 +22,7 @@ import {
   setLabelmap3DForElement,
 } from './setLabelmap3D.js';
 import getLabelmapStats from './getLabelmapStats';
-import getLabelmaps3D from './getLabelmaps3D';
+import getLabelmaps3D, { getLabelmap3D } from './getLabelmaps3D';
 import getLabelmap2D, { getLabelmap2DByImageIdIndex } from './getLabelmap2D';
 import getSegmentOfActiveLabelmapAtEvent from './getSegmentOfActiveLabelmapAtEvent';
 import setColorLUT, {
@@ -37,6 +37,7 @@ import deleteSegment from './deleteSegment';
 
 import state from './state';
 import configuration from './configuration';
+import { undo, redo, pushState } from './history';
 
 /**
  * A map of `firstImageId` to associated `BrushStackState`, where
@@ -91,6 +92,7 @@ export default {
   getters: {
     metadata: getMetadata,
     labelmaps3D: getLabelmaps3D,
+    labelmap3D: getLabelmap3D,
     activeLabelmapIndex: getActiveLabelmapIndex,
     activeSegmentIndex: getActiveSegmentIndex,
     isSegmentVisible,
@@ -128,5 +130,8 @@ export default {
         configuration.maxRadius
       );
     },
+    undo,
+    redo,
+    pushState,
   },
 };

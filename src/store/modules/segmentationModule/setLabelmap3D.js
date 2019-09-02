@@ -2,7 +2,6 @@ import getElement from './getElement';
 import { getToolState } from '../../../stateManagement/toolState.js';
 import state from './state';
 import getSegmentsOnPixelData from './getSegmentsOnPixeldata';
-import external from '../../../externalModules';
 import { triggerLabelmapModifiedEvent } from '../../../util/segmentation';
 
 /**
@@ -93,6 +92,8 @@ function setLabelmap3DByFirstImageId(
     activeSegmentIndex: 1,
     colorLUTIndex: 0,
     segmentsHidden: [],
+    undo: [],
+    redo: [],
   };
 
   const labelmaps2D = brushStackState.labelmaps3D[labelmapIndex].labelmaps2D;
