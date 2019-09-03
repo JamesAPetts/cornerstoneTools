@@ -3,13 +3,30 @@ import pako from 'pako';
 import { getLogger } from '../../../util/logger';
 import getSegmentsOnPixelData from './getSegmentsOnPixeldata';
 import external from '../../../externalModules';
+import LabelmapDeflatorWorker from './labelmapDeflator.worker.js';
 
 const logger = getLogger('util:segmentation:labelmap3DHistory');
+
+const deflatorWorker = new LabelmapDeflatorWorker();
+
+console.log(deflatorWorker);
+
+deflatorWorker.onmessage = function(e) {
+  console.log('Message received from worker');
+  console.log(e.data[0]);
+};
 
 // TODO - Metadata! (e.g.  if you delete a segment and its metadata in one go, you probably want to be able to undo that).
 
 function pushState(element, labelmapIndex) {
   const labelmap3D = getLabelmap3D(element, labelmapIndex);
+
+  console.log('posting message');
+  //deflatorWorker.postMessage([labelmap3D.buffer.slice(0)]);
+  deflatorWorker.postMessage(['hi']);
+
+  // TEMP
+  return;
 
   // TODO -> On worker.
   const compressedState = pako.deflate(labelmap3D.buffer);
