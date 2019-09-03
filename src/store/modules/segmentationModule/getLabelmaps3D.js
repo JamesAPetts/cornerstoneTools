@@ -9,7 +9,7 @@ import state from './state';
  * @param  {HTMLElement|string} elementOrEnabledElementUID   The cornerstone enabled
  *                                                    element or its UUID.
  * @returns {Object}              An object containing `Labelmap3D` objects,
- *                                the `activeLabelmapIndex` amd the `currentImageIdIndex`.
+ *                                the `activeLabelmapIndex`, the firstImageId and the `currentImageIdIndex`.
  */
 export default function getLabelmaps3D(elementOrEnabledElementUID) {
   const element = getElement(elementOrEnabledElementUID);
@@ -35,6 +35,7 @@ export default function getLabelmaps3D(elementOrEnabledElementUID) {
   return {
     labelmaps3D,
     activeLabelmapIndex,
+    firstImageId,
     currentImageIdIndex: stackData.currentImageIdIndex,
   };
 }
@@ -50,12 +51,16 @@ export default function getLabelmaps3D(elementOrEnabledElementUID) {
  * @returns {Object}              A `Labelmap3D` object.
  */
 export function getLabelmap3D(elementOrEnabledElementUID, labelmapIndex) {
-  const { labelmaps3D, activeLabelmapIndex } = getLabelmaps3D(
+  const { labelmaps3D, activeLabelmapIndex, firstImageId } = getLabelmaps3D(
     elementOrEnabledElementUID
   );
 
   labelmapIndex =
     labelmapIndex !== undefined ? labelmapIndex : activeLabelmapIndex;
 
-  return labelmaps3D[labelmapIndex];
+  return {
+    labelmap3D: labelmaps3D[labelmapIndex],
+    firstImageId,
+    labelmapIndex,
+  };
 }

@@ -94,6 +94,7 @@ function setLabelmap3DByFirstImageId(
     segmentsHidden: [],
     undo: [],
     redo: [],
+    compressQueueLength: 0,
   };
 
   const labelmaps2D = brushStackState.labelmaps3D[labelmapIndex].labelmaps2D;

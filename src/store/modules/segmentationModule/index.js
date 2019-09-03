@@ -39,6 +39,8 @@ import state from './state';
 import configuration from './configuration';
 import { undo, redo, pushState } from './history';
 
+import { initDeflatorWorker } from './workers/deflatorWorker';
+
 /**
  * A map of `firstImageId` to associated `BrushStackState`, where
  * `firstImageId` is the `imageId` of the first image in a stack.
@@ -83,6 +85,13 @@ import { undo, redo, pushState } from './history';
  */
 function onRegisterCallback() {
   setColorLUT(0);
+
+  if (
+    configuration.storeHistory &&
+    configuration.useWorkerForBackgroundCompression
+  ) {
+    initDeflatorWorker();
+  }
 }
 
 export default {

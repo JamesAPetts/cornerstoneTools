@@ -12,6 +12,8 @@ const configuration = {
   outlineAlpha: 0.7,
   outlineAlphaInactive: 0.2,
   outlineWidth: 3,
+  storeHistory: true,
+  useWorkerForBackgroundCompression: true,
 };
 
 export default configuration;

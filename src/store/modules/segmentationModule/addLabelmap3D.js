@@ -17,5 +17,6 @@ export default function addLabelmap3D(brushStackState, labelmapIndex, size) {
     segmentsHidden: [],
     undo: [],
     redo: [],
+    compressQueueLength: 0,
   };
 }

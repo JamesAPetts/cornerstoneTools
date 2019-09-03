@@ -19,6 +19,7 @@ module.exports = {
       root: 'cornerstoneTools',
     },
     libraryTarget: 'umd',
+    globalObject: 'this',
     path: outputPath,
     umdNamedDefine: true,
   },
@@ -33,6 +34,16 @@ module.exports = {
   },
   module: {
     rules: [
+      {
+        test: /\.worker\.js$/,
+        use: {
+          loader: 'worker-loader',
+          options: {
+            inline: true,
+            fallback: false,
+          },
+        },
+      },
       {
         enforce: 'pre',
         test: /\.js$/,
@@ -51,13 +62,6 @@ module.exports = {
             presets: ['@babel/preset-env'],
             plugins: ['@babel/plugin-transform-runtime'],
           },
-        },
-      },
-      {
-        test: /\.worker\.js$/,
-        use: {
-          loader: 'worker-loader',
-          options: { inline: true, fallback: false },
         },
       },
     ],

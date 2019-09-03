@@ -3,39 +3,51 @@ import pako from 'pako';
 import { getLogger } from '../../../util/logger';
 import getSegmentsOnPixelData from './getSegmentsOnPixeldata';
 import external from '../../../externalModules';
-import LabelmapDeflatorWorker from './labelmapDeflator.worker.js';
+import deflatorWorker from './workers/deflatorWorker';
+import configuration from './configuration';
+import throttle from '../../../util/throttle';
+import debounce from '../../../util/debounce';
 
 const logger = getLogger('util:segmentation:labelmap3DHistory');
 
-const deflatorWorker = new LabelmapDeflatorWorker();
+// TODO - Metadata? (e.g.  if you delete a segment and its metadata in one go, you probably want to be able to undo that).
+// Depends on implementation, whether you delete a label name/definition when you delete a segment.
 
-console.log(deflatorWorker);
+const pushState = debounce(_pushState, 200, { leading: true });
 
-deflatorWorker.onmessage = function(e) {
-  console.log('Message received from worker');
-  console.log(e.data[0]);
-};
+function _pushState(element, labelmapIndex) {
+  if (!configuration.storeHistory) {
+    return;
+  }
 
-// TODO - Metadata! (e.g.  if you delete a segment and its metadata in one go, you probably want to be able to undo that).
+  const result = getLabelmap3D(element, labelmapIndex);
+  const { labelmap3D, firstImageId } = result;
 
-function pushState(element, labelmapIndex) {
-  const labelmap3D = getLabelmap3D(element, labelmapIndex);
+  labelmapIndex = result.labelmapIndex;
 
-  console.log('posting message');
-  //deflatorWorker.postMessage([labelmap3D.buffer.slice(0)]);
-  deflatorWorker.postMessage(['hi']);
+  const time = performance.now();
 
-  // TEMP
-  return;
+  if (configuration.useWorkerForBackgroundCompression) {
+    labelmap3D.compressQueueLength++;
 
-  // TODO -> On worker.
+    console.log('posting message');
+    deflatorWorker.worker.postMessage([
+      labelmap3D.buffer.slice(0),
+      firstImageId,
+      labelmapIndex,
+      time,
+    ]);
+
+    return;
+  }
+
   const compressedState = pako.deflate(labelmap3D.buffer);
 
   //TEMP
   logger.warn('pushState: undo, redo:');
 
   labelmap3D.undo.push({
-    time: performance.now(),
+    time,
     compressedState,
   });
   labelmap3D.redo = [];
@@ -46,7 +58,12 @@ function pushState(element, labelmapIndex) {
 }
 
 function undo(element, labelmapIndex) {
-  const labelmap3D = getLabelmap3D(element, labelmapIndex);
+  const { labelmap3D } = getLabelmap3D(element, labelmapIndex);
+
+  if (labelmap3D.compressQueueLength > 0) {
+    // TODO -> Find a better solution for this.
+    return;
+  }
 
   if (!labelmap3D.undo.length) {
     logger.warn('No undos left!');
@@ -73,7 +90,7 @@ function undo(element, labelmapIndex) {
 }
 
 function redo(element, labelmapIndex) {
-  const labelmap3D = getLabelmap3D(element, labelmapIndex);
+  const { labelmap3D } = getLabelmap3D(element, labelmapIndex);
 
   if (!labelmap3D.redo.length) {
     logger.warn('No redos left!');
