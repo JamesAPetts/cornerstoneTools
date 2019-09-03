@@ -97,10 +97,11 @@ function _setHandlesAndUpdate(evt) {
 function _applyStrategy(evt) {
   const points = this.handles.points;
   const { element } = evt.detail;
-
   const { labelmap2D, labelmap3D } = getters.labelmap2D(element);
-
   const pixelData = labelmap2D.pixelData;
+
+  // Push state to history.
+  setters.pushState(this.element);
 
   const operationData = {
     points,

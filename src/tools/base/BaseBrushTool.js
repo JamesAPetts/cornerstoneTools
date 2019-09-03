@@ -122,6 +122,9 @@ class BaseBrushTool extends BaseTool {
       activeLabelmapIndex,
     } = getters.labelmap2D(element);
 
+    // Push state to history.
+    setters.pushState(this.element);
+
     const shouldErase =
       this._isCtrlDown(eventData) || this.configuration.alwaysEraseOnClick;
 
@@ -178,9 +181,6 @@ class BaseBrushTool extends BaseTool {
     ) {
       delete labelmap3D.labelmaps2D[currentImageIdIndex];
     }
-
-    // Push state.
-    setters.pushState(this.element);
   }
 
   // ===================================================================

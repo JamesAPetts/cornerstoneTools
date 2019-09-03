@@ -12,14 +12,20 @@ function pushState(element, labelmapIndex) {
   const labelmap3D = getLabelmap3D(element, labelmapIndex);
 
   // TODO -> On worker.
-  const Uint16View = new Uint16Array(labelmap3D.buffer);
-  const compressedState = pako.deflate(Uint16View);
+  const compressedState = pako.deflate(labelmap3D.buffer);
 
-  labelmap3D.undo.push(compressedState);
+  //TEMP
+  logger.warn('pushState: undo, redo:');
+
+  labelmap3D.undo.push({
+    time: performance.now(),
+    compressedState,
+  });
   labelmap3D.redo = [];
 
   // TEMP
   logger.warn(labelmap3D.undo);
+  logger.warn(labelmap3D.redo);
 }
 
 function undo(element, labelmapIndex) {
@@ -31,42 +37,67 @@ function undo(element, labelmapIndex) {
   }
 
   // Get current state and push it to redo.
+  const compressedState = pako.deflate(labelmap3D.buffer);
 
-  const Uint16View = new Uint16Array(labelmap3D.buffer);
-  const compressedState = pako.deflate(Uint16View);
-
-  labelmap3D.redo.push(compressedState);
-
-  logger.warn(labelmap3D.undo);
-  logger.warn(labelmap3D.redo);
+  labelmap3D.redo.push({
+    time: performance.now(),
+    compressedState,
+  });
 
   // Pop undo stack and apply.
   const oldCompressedState = labelmap3D.undo.pop();
+
+  logger.warn('undo: undo, redo:');
+  logger.warn(labelmap3D.undo);
+  logger.warn(labelmap3D.redo);
 
   // Inflate and apply
   applyState(labelmap3D, oldCompressedState, element);
 }
 
-console.log(undo);
+function redo(element, labelmapIndex) {
+  const labelmap3D = getLabelmap3D(element, labelmapIndex);
 
-function redo(element, labelmapIndex) {}
+  if (!labelmap3D.redo.length) {
+    logger.warn('No redos left!');
+    return;
+  }
+
+  // Get current state and push it to undo.
+  const compressedState = pako.deflate(labelmap3D.buffer);
+
+  labelmap3D.undo.push({
+    time: performance.now(),
+    compressedState,
+  });
+
+  // Pop undo stack and apply.
+  const oldCompressedState = labelmap3D.redo.pop();
+
+  logger.warn('undo: undo, redo:');
+  logger.warn(labelmap3D.undo);
+  logger.warn(labelmap3D.redo);
+
+  // Inflate and apply
+  applyState(labelmap3D, oldCompressedState, element);
+}
 
 export { pushState, undo, redo };
 
-function applyState(labelmap3D, compressedState, element) {
-  logger.warn('Apply state');
-
+function applyState(labelmap3D, compressedStateObj, element) {
+  const { compressedState } = compressedStateObj;
   const inflatedState = pako.inflate(compressedState);
 
   const enabledElement = external.cornerstone.getEnabledElement(element);
 
   const { rows, columns } = enabledElement.image;
 
-  const sliceLengthInUint16 = rows * columns;
-  const slicelengthInBytes = sliceLengthInUint16 * 2;
+  const sliceLength = rows * columns;
+  const slicelengthInBytes = sliceLength * 2;
   const numberOfFrames = inflatedState.length / slicelengthInBytes;
 
-  labelmap3D.buffer = inflatedState;
+  labelmap3D.buffer = inflatedState.buffer;
+  labelmap3D.labelmaps2D = [];
 
   const { labelmaps2D } = labelmap3D;
 
@@ -74,7 +105,7 @@ function applyState(labelmap3D, compressedState, element) {
     const pixelData = new Uint16Array(
       labelmap3D.buffer,
       slicelengthInBytes * i,
-      sliceLengthInUint16
+      sliceLength
     );
 
     const segmentsOnLabelmap = getSegmentsOnPixelData(pixelData);

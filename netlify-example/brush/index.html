@@ -218,6 +218,13 @@
     'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.12.dcm',
   ];
 
+  /*
+  const imageIds = [
+    'example://1',
+    'example://2'
+  ];
+  */
+
   const stack = {
     currentImageIdIndex: 0,
     imageIds: imageIds,
@@ -593,6 +600,15 @@
         break;
     }
   }
+
+
+  Mousetrap.bind(['command+z', 'ctrl+z'], function () {
+    setters.undo(element)
+  });
+
+  Mousetrap.bind(['command+y', 'ctrl+y'], function () {
+    setters.redo(element)
+  });
 </script>
 
 </html>
